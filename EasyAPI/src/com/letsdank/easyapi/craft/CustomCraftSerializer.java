@@ -42,17 +42,18 @@ public class CustomCraftSerializer {
 		}
 		
 		section = section.getConfigurationSection("craft");
-		CustomCraftType craftType = CustomCraftType.valueOf(section.getString("type"));
+		CustomCraftType craftType = CustomCraftType.valueOf(section.getString("type").toUpperCase());
 		List<String> craftPattern = section.getStringList("pattern");
 		Map<String, ItemStack> craftKeys = new HashMap<String, ItemStack>();
 		
-		for (Map.Entry<String, Object> entry : section.getValues(true).entrySet()) {
-			if (!config.isConfigurationSection(entry.getKey())) {
+		ConfigurationSection keySection = section.getConfigurationSection("keys");
+		for (Map.Entry<String, Object> entry : keySection.getValues(false).entrySet()) {
+			if (!keySection.isConfigurationSection(entry.getKey())) {
 				error(file, "This list should contain an item stacks");
 				return null;
 			}
 			
-			ConfigurationSection entrySection = section.getConfigurationSection(entry.getKey());
+			ConfigurationSection entrySection = keySection.getConfigurationSection(entry.getKey());
 			ItemStack entryStack = new ItemStackSerializer().serialize(file, entrySection.getCurrentPath());
 			
 			craftKeys.put(entrySection.getName(), entryStack);

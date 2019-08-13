@@ -69,4 +69,38 @@ public class CustomCraft {
 	public CustomCraftType getType() {
 		return type;
 	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		boolean first = true;
+		
+		builder.append("CustomCraft[Type = ");
+		builder.append(type.name());
+		builder.append(", Pattern: [");
+		for (String p : pattern) {
+			if (first) first = false;
+			else builder.append(", ");
+			builder.append(p);
+		}
+		builder.append("], Keys: [");
+		first = true;
+		for (Map.Entry<String, ItemStack> entry : keys.entrySet()) {
+			if (first) first = false;
+			else builder.append("], ");
+			builder.append("[");
+			builder.append(entry.getKey());
+			builder.append(", ");
+			builder.append(entry.getValue().toString());
+		}
+		
+		builder.append(", Result: ");
+		builder.append(result.toString());
+		builder.append("]");
+		
+		return builder.toString();
+	}
 }

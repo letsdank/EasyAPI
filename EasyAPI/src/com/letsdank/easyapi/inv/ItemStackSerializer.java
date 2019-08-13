@@ -35,12 +35,13 @@ public class ItemStackSerializer {
 		
 		if (!section.isConfigurationSection("stack")) {
 			error(file, "This file does not have an item stack.");
+			return null;
 		}
 		
 		section = section.getConfigurationSection("stack");
 		
 		if (section.contains("type")) {
-			Material material = Material.valueOf(section.getString("type"));
+			Material material = Material.valueOf(section.getString("type").toUpperCase());
 			int amount = section.getInt("amount");
 			String name = section.getString("name");
 			List<String> lore = section.getStringList("lore");

@@ -43,6 +43,8 @@ public class Main extends JavaPlugin {
 		//
 		
 		File craftPath = new File(getDataFolder(), "recipes");
+		if (!craftPath.exists()) craftPath.mkdirs();
+		
 		for (File file : craftPath.listFiles()) {
 			customCrafts.add(new CustomCraftSerializer().serialize(file, null));
 		}
