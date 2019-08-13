@@ -86,7 +86,7 @@ public class ItemStackBuilder {
 		
 		if (name != null) meta.setDisplayName(name);
 		if (localizedName != null) meta.setLocalizedName(localizedName);
-		if (lore != null) meta.setLore(lore);
+		if (lore != null && !lore.isEmpty()) meta.setLore(lore);
 		
 		stack.setItemMeta(meta);
 		return stack;

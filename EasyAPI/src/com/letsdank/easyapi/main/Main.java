@@ -22,7 +22,7 @@ import java.util.List;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.letsdank.easyapi.craft.CustomCraft;
-import com.letsdank.easyapi.craft.CustomCraftSerializer;
+import com.letsdank.easyapi.craft.CustomCraftListSerializer;
 
 /**
  * 
@@ -31,9 +31,6 @@ public class Main extends JavaPlugin {
 	
 	public List<CustomCraft> customCrafts;
 	
-	/* (non-Javadoc)
-	 * @see org.bukkit.plugin.java.JavaPlugin#onEnable()
-	 */
 	@Override
 	public void onEnable() {
 		customCrafts = new ArrayList<CustomCraft>();
@@ -46,7 +43,7 @@ public class Main extends JavaPlugin {
 		if (!craftPath.exists()) craftPath.mkdirs();
 		
 		for (File file : craftPath.listFiles()) {
-			customCrafts.add(new CustomCraftSerializer().serialize(file, null));
+			customCrafts.addAll(new CustomCraftListSerializer().serialize(file, null));
 		}
 	}
 }
