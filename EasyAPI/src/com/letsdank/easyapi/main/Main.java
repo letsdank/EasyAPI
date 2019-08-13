@@ -19,25 +19,39 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.letsdank.easyapi.craft.CustomCraft;
 import com.letsdank.easyapi.craft.CustomCraftListSerializer;
+import com.letsdank.easyapi.inv.ItemStackSerializer;
 
 /**
  * 
  */
 public class Main extends JavaPlugin {
 	
-	public List<CustomCraft> customCrafts;
+	private static JavaPlugin instance;
+	private static List<ItemStack> stacks;
+	private static List<CustomCraft> customCrafts;
 	
 	@Override
 	public void onEnable() {
 		customCrafts = new ArrayList<CustomCraft>();
+		instance = this;
 		
 		//
 		// Plugin Initialization
 		//
+		
+		File itemPath = new File(getDataFolder(), "stacks");
+		if (!itemPath.exists()) itemPath.mkdirs();
+		
+		for (File file : itemPath.listFiles()) {
+			stacks.add(new ItemStackSerializer().serialize(file, ""));
+		}
 		
 		File craftPath = new File(getDataFolder(), "recipes");
 		if (!craftPath.exists()) craftPath.mkdirs();
@@ -45,5 +59,38 @@ public class Main extends JavaPlugin {
 		for (File file : craftPath.listFiles()) {
 			customCrafts.addAll(new CustomCraftListSerializer().serialize(file, null));
 		}
+	}
+	
+	
+	@Override
+	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+		if (command.getName().equalsIgnoreCase("easyapi")) {
+			sender.sendMessage("Give me cookies");
+			
+			return true;
+		}
+		
+		return true;
+	}
+	
+	/**
+	 * @return the stacks
+	 */
+	public static List<ItemStack> getStacks() {
+		return stacks;
+	}
+	
+	/**
+	 * @return the customCrafts
+	 */
+	public static List<CustomCraft> getCustomCrafts() {
+		return customCrafts;
+	}
+	
+	/**
+	 * @return the instance
+	 */
+	public static JavaPlugin getInstance() {
+		return instance;
 	}
 }
