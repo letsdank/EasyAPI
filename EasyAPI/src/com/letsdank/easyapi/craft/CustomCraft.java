@@ -25,6 +25,11 @@ import org.bukkit.inventory.ItemStack;
  */
 public class CustomCraft {
 	
+	//
+	// Recipe structure took from Minecraft Forge JSON example.
+	//
+	
+	
 	private CustomCraftType type;
 	private List<String> pattern;
 	private Map<String, ItemStack> keys;
