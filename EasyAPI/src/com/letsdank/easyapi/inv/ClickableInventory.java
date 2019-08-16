@@ -19,15 +19,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.bukkit.Bukkit;
-import org.bukkit.entity.HumanEntity;
-import org.bukkit.entity.Player;
+import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import com.letsdank.easyapi.main.Main;
 
@@ -35,13 +34,21 @@ import com.letsdank.easyapi.main.Main;
  * 
  */
 public class ClickableInventory {
+
 	private String id;
+	private List<NumerableItemStack> backupInv;
 	private Inventory inv;
 	private List<ClickableItemStack> buttons;
 	
 	public ClickableInventory(Inventory inv, String id) {
 		this.id = id;
 		this.inv = inv;
+		backupInv = new ArrayList<NumerableItemStack>();
+		for (int k = 0; k < inv.getSize(); k++) {
+			if (inv.getItem(k) == null) continue;
+			backupInv.add(new NumerableItemStack(k, inv.getItem(k).clone()));
+		}
+		
 		buttons = new ArrayList<ClickableItemStack>();
 		
 		Bukkit.getPluginManager().registerEvents(new Listener() {
@@ -51,40 +58,38 @@ public class ClickableInventory {
 				
 				if (e.getClickedInventory().equals(inv)) {
 					for (ClickableItemStack item : buttons) {
-						if (stacksEquals(e.getCurrentItem(), item.getBase())) {
+						if (item.getBase().equals(e.getCurrentItem())) {
 							for (Runnable run : item.getAction()) {
 								run.run();
 							}
-							updateInventory((Player)e.getWhoClicked(), e.getCurrentItem());
 							e.setCancelled(true);
-						} else {
-							e.getWhoClicked().sendMessage(":(");
 						}
 					}
+				}
+			}
+			
+			@EventHandler
+			public void onClose(InventoryCloseEvent e) {
+				if (e.getInventory().equals(inv)) {
+					setNewInventory();
 				}
 			}
 		}, Main.getInstance());
 	}
 	
-	/**
-	 * 
-	 */
-	private void updateInventory(Player p, ItemStack button) {
-		for (ClickableItemStack stack : buttons) {
-			if (stack.getBase().equals(button)) {
-				stack.setBase(button.clone());
-				System.out.println(button.toString());
-			}
+	private void setNewInventory() {
+		for (NumerableItemStack stack : backupInv) {
+			ItemStack item = inv.getItem(stack.index);
+			
+			item.setAmount(stack.amount);
+			item.setType(stack.material);
+			ItemMeta meta = item.getItemMeta();
+			
+			meta.setDisplayName(stack.name);
+			meta.setLore(stack.lore);
+			
+			item.setItemMeta(meta);
 		}
-		new BukkitRunnable() {
-			@SuppressWarnings("deprecation")
-			@Override
-			public void run() {
-				for (HumanEntity he : inv.getViewers()) {
-					((Player)he).updateInventory();
-				}
-			}
-		}.runTaskLater(Main.getInstance(), 1L);
 	}
 
 	/**
@@ -96,13 +101,37 @@ public class ClickableInventory {
 	public void addButton(ClickableItemStack button, int index) {
 		inv.setItem(index, button.getBase());
 		buttons.add(button);
+		updateInv(index, button.getBase().clone());
 	}
 	
 	public void removeButton(ClickableItemStack button) {
 		inv.remove(button.getBase());
 		buttons.remove(button);
+		removeButton(button.getBase());
 	}
 	
+	/**
+	 * @param base
+	 */
+	private void removeButton(ItemStack base) {
+		for (NumerableItemStack inv : backupInv) {
+			if (stackEquals(base, inv.material, inv.amount, inv.name, inv.lore)) {
+				backupInv.remove(inv);
+			}
+		}
+	}
+
+	private boolean stackEquals(ItemStack base, Material material, int amount, String name, List<String> lore) {
+		if (base.getAmount() == amount &&
+			base.getType().equals(material) &&
+			base.getItemMeta().getDisplayName().equals(name) &&
+			base.getItemMeta().getLore().equals(lore)) {
+			return true;
+		}
+		
+		return false;
+	}
+
 	/**
 	 * @return the name
 	 */
@@ -117,31 +146,27 @@ public class ClickableInventory {
 		return inv;
 	}
 	
-	private boolean stacksEquals(ItemStack o1, ItemStack o2) {
-		if (o1.getType() != o2.getType()) {
-			System.out.println("type not equal");
-			return false;
-		}
-		if (o1.getAmount() != o2.getAmount()) {
-			System.out.println("amount not equal");
-			return false;
-		}
-		return metaEquals(o1.getItemMeta(), o2.getItemMeta());
+	private void updateInv(int index, ItemStack button) {
+		backupInv.add(new NumerableItemStack(index, button));
 	}
+	
 
-	private boolean metaEquals(ItemMeta o1, ItemMeta o2) {
-		if (o1.getDisplayName() != o2.getDisplayName()) {
-			System.out.println("name not equal");
-			return false;
-		}
-		if (o1.getLore() != o2.getLore()) {
-			System.out.println("lore not equal");
-			return false;
-		}
-		// if (o1.getLocalizedName() != o2.getLocalizedName()) {
-		//	return false;
-		// }
+	/**
+	 * 
+	 */
+	private class NumerableItemStack {
+		private int index;
+		private Material material;
+		private int amount;
+		private String name;
+		private List<String> lore;
 		
-		return true;
+		NumerableItemStack(int index, ItemStack stack) {
+			this.index = index;
+			material = stack.getType();
+			amount = stack.getAmount();
+			name = stack.getItemMeta().getDisplayName();
+			lore = stack.getItemMeta().getLore();
+		}
 	}
 }
