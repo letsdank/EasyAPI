@@ -15,6 +15,7 @@
  */
 package com.letsdank.easyapi.inv;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +36,6 @@ public class ItemStackBuilder {
 	
 	private int amount;
 	private String name;
-	private String localizedName;
 	private List<String> lore;
 	
 	private Map<Enchantment, Integer> enchantments;
@@ -48,11 +48,6 @@ public class ItemStackBuilder {
 	
 	public ItemStackBuilder withAmount(int amount) {
 		this.amount = amount;
-		return this;
-	}
-	
-	public ItemStackBuilder withLocalizedName(String localizedName) {
-		this.localizedName = localizedName;
 		return this;
 	}
 	
@@ -84,11 +79,19 @@ public class ItemStackBuilder {
 		
 		ItemMeta meta = stack.getItemMeta();
 		
-		if (name != null) meta.setDisplayName(name);
-		if (localizedName != null) meta.setLocalizedName(localizedName);
-		if (lore != null && !lore.isEmpty()) meta.setLore(lore);
+		if (name != null) meta.setDisplayName(name.replace('&', '§'));
+		if (lore != null && !lore.isEmpty()) meta.setLore(setColorizedLore(lore));
 		
 		stack.setItemMeta(meta);
 		return stack;
+	}
+	
+	private List<String> setColorizedLore(List<String> lore) {
+		List<String> newLore = new ArrayList<String>();
+		for (String str : lore) {
+			newLore.add(str.replace('&', '§'));
+		}
+		
+		return newLore;
 	}
 }

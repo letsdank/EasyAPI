@@ -20,6 +20,8 @@ import java.util.Map;
 
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Recipe;
+import org.bukkit.inventory.ShapedRecipe;
 
 /**
  * 
@@ -43,7 +45,7 @@ public class CustomCraft {
 		this.result = result;
 		this.id = id;
 		
-		checkForAir();
+		//checkForAir();
 	}
 	
 	/**
@@ -141,11 +143,26 @@ public class CustomCraft {
 	/**
 	 * 
 	 */
+	@SuppressWarnings("unused") // will need in the future...
 	private void checkForAir() {
 		for (Map.Entry<String, ItemStack> stack : keys.entrySet()) {
 			if (stack.getValue().getType() == Material.AIR) {
 				stack.getValue().setAmount(0);
 			}
 		}
+	}
+
+	/**
+	 * @return
+	 */
+	public Recipe toRecipe() {
+		ShapedRecipe recipe = new ShapedRecipe(result);
+		recipe.shape(pattern.toArray(new String[pattern.size()]));
+		for (Map.Entry<String, ItemStack> entry : keys.entrySet()) {
+			if (entry.getValue().getType() == Material.AIR) continue;
+			recipe.setIngredient(entry.getKey().charAt(0), entry.getValue().getType());
+		}
+		
+		return recipe;
 	}
 }

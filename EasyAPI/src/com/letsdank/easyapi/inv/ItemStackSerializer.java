@@ -45,7 +45,6 @@ public class ItemStackSerializer {
 			int amount = section.getInt("amount", 1);
 			String name = section.getString("name");
 			List<String> lore = section.getStringList("lore");
-			String localizedName = section.getString("localizedName");
 			
 			//
 			// Enchantments will be soon..
@@ -54,7 +53,6 @@ public class ItemStackSerializer {
 			return new ItemStackBuilder(material)
 					.withAmount(amount)
 					.withName(name)
-					.withLocalizedName(localizedName)
 					.withLore(lore).build();
 		}
 		
