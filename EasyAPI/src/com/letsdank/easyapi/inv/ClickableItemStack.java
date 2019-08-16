@@ -51,7 +51,6 @@ public class ClickableItemStack {
 	 * @return the action
 	 */
 	public List<Runnable> getAction() {
-		if (action == null) System.out.println("idk y action is null ;(");
 		return action;
 	}
 	

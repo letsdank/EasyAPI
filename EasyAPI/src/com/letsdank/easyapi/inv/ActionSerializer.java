@@ -82,6 +82,8 @@ public class ActionSerializer {
 							inv.setItem(pos, newStack);
 						}
 					});
+				case "chat":
+					
 			}
 		}
 		

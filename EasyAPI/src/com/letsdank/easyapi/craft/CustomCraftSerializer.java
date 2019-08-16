@@ -42,6 +42,19 @@ public class CustomCraftSerializer {
 		}
 		
 		section = section.getConfigurationSection("craft");
+		
+		String id = section.getString("id");
+		
+		if (id == null) {
+			if (section.getParent() != null) {
+				id = section.getParent().getName();
+				if (id == null) {
+					error(file, "Could not find id for Custom Craft");
+				}
+			} else {
+				id = "craft";
+			}
+		}
 		CustomCraftType craftType = CustomCraftType.valueOf(section.getString("type").toUpperCase());
 		List<String> craftPattern = section.getStringList("pattern");
 		Map<String, ItemStack> craftKeys = new HashMap<String, ItemStack>();
@@ -62,7 +75,7 @@ public class CustomCraftSerializer {
 		ItemStack craftResult = new ItemStackSerializer().serialize(file,
 				section.getConfigurationSection("result").getCurrentPath());
 		
-		return new CustomCraft(craftType, craftPattern, craftKeys, craftResult);
+		return new CustomCraft(id, craftType, craftPattern, craftKeys, craftResult);
 	}
 
 	/**

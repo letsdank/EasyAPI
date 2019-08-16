@@ -17,4 +17,7 @@ commands:
    inv:
       description: Shows inventory from folder inv created by EasyAPI plugin
       permission: eapi.inv
-      usage: 'Usage: /<command> [name]'
+      usage: 'Usage: /<command> [name] or /<command> list'
+   craft:
+      description: Shows Custom Craft recipes listed from folder customcraft.
+      usage: 'Usage: /<command> [name] or /<command> list'

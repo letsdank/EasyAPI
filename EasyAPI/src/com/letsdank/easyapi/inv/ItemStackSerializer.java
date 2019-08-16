@@ -42,7 +42,7 @@ public class ItemStackSerializer {
 		
 		if (section.contains("type")) {
 			Material material = Material.valueOf(section.getString("type").toUpperCase());
-			int amount = section.getInt("amount");
+			int amount = section.getInt("amount", 1);
 			String name = section.getString("name");
 			List<String> lore = section.getStringList("lore");
 			String localizedName = section.getString("localizedName");

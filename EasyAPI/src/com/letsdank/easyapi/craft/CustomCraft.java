@@ -18,6 +18,7 @@ package com.letsdank.easyapi.craft;
 import java.util.List;
 import java.util.Map;
 
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -29,17 +30,20 @@ public class CustomCraft {
 	// Recipe structure took from Minecraft Forge JSON example.
 	//
 	
-	
+	private String id;
 	private CustomCraftType type;
 	private List<String> pattern;
 	private Map<String, ItemStack> keys;
 	private ItemStack result;
 	
-	public CustomCraft(CustomCraftType type, List<String> pattern, Map<String, ItemStack> keys, ItemStack result) {
+	public CustomCraft(String id, CustomCraftType type, List<String> pattern, Map<String, ItemStack> keys, ItemStack result) {
 		this.type = type;
 		this.pattern = pattern;
 		this.keys = keys;
 		this.result = result;
+		this.id = id;
+		
+		checkForAir();
 	}
 	
 	/**
@@ -68,6 +72,13 @@ public class CustomCraft {
 	 */
 	public CustomCraftType getType() {
 		return type;
+	}
+	
+	/**
+	 * @return the id
+	 */
+	public String getId() {
+		return id;
 	}
 	
 	/* (non-Javadoc)
@@ -102,5 +113,39 @@ public class CustomCraft {
 		builder.append("]");
 		
 		return builder.toString();
+	}
+
+	/**
+	 * @return
+	 */
+	public ItemStack[] getMatrix() {
+		ItemStack[] result = new ItemStack[9];
+		int index = 0;
+		for (Map.Entry<String, ItemStack> entry : keys.entrySet()) {
+			for (int i = 0; i < pattern.size(); i++) {
+				String p = pattern.get(i);
+				for (int j = 0; j < p.toCharArray().length; j++) {
+					if (p.substring(j, j + 1).equals(entry.getKey())) {
+						result[index] = entry.getValue();
+					}
+					index++;
+				}
+			}
+			
+			index = 0;
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * 
+	 */
+	private void checkForAir() {
+		for (Map.Entry<String, ItemStack> stack : keys.entrySet()) {
+			if (stack.getValue().getType() == Material.AIR) {
+				stack.getValue().setAmount(0);
+			}
+		}
 	}
 }
