@@ -21,11 +21,14 @@ import java.util.List;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.letsdank.easyapi.craft.CustomCraft;
 import com.letsdank.easyapi.craft.CustomCraftListSerializer;
+import com.letsdank.easyapi.inv.ClickableInventory;
+import com.letsdank.easyapi.inv.ClickableInventorySerializer;
 import com.letsdank.easyapi.inv.ItemStackSerializer;
 
 /**
@@ -36,28 +39,38 @@ public class Main extends JavaPlugin {
 	private static JavaPlugin instance;
 	private static List<ItemStack> stacks;
 	private static List<CustomCraft> customCrafts;
+	private static List<ClickableInventory> clickableInventories;
 	
 	@Override
 	public void onEnable() {
+		stacks = new ArrayList<ItemStack>();
 		customCrafts = new ArrayList<CustomCraft>();
+		clickableInventories = new ArrayList<ClickableInventory>();
 		instance = this;
 		
 		//
 		// Plugin Initialization
 		//
 		
-		File itemPath = new File(getDataFolder(), "stacks");
+		File itemPath = new File(getDataFolder(), "itemstacks");
 		if (!itemPath.exists()) itemPath.mkdirs();
 		
 		for (File file : itemPath.listFiles()) {
 			stacks.add(new ItemStackSerializer().serialize(file, ""));
 		}
 		
-		File craftPath = new File(getDataFolder(), "recipes");
+		File invPath = new File(getDataFolder(), "inventories");
+		if (!invPath.exists()) invPath.mkdirs();
+		
+		for (File file : invPath.listFiles()) {
+			clickableInventories.add(new ClickableInventorySerializer().serialize(file, ""));
+		}
+		
+		File craftPath = new File(getDataFolder(), "customrecipes");
 		if (!craftPath.exists()) craftPath.mkdirs();
 		
 		for (File file : craftPath.listFiles()) {
-			customCrafts.addAll(new CustomCraftListSerializer().serialize(file, null));
+			customCrafts.addAll(new CustomCraftListSerializer().serialize(file, ""));
 		}
 	}
 	
@@ -68,9 +81,50 @@ public class Main extends JavaPlugin {
 			sender.sendMessage("Give me cookies");
 			
 			return true;
+		} else if (command.getName().equalsIgnoreCase("inv")) {
+			if (args.length <= 0) {
+				// should print usage
+				return false;
+			}
+			
+			String id = args[0];
+			if (id.equalsIgnoreCase("list")) {
+				
+				//
+				// Shows list of available clickable inventories.
+				//
+				
+				sender.sendMessage("Available Inventories:");
+				
+				for (ClickableInventory entry : clickableInventories) {
+					sender.sendMessage(" - " + entry.getId());
+				}
+				
+				return true;
+			}
+			if (!(sender instanceof Player)) {
+				sender.sendMessage("This command is available only for players!");
+				return true;
+			}
+			
+			ClickableInventory inv = null;
+			
+			for (ClickableInventory entry : clickableInventories) {
+				if (entry.getId().equalsIgnoreCase(id)) {
+					inv = entry;
+				}
+			}
+			
+			if (inv == null) {
+				System.out.println("Could not find inventory with id " + id);
+				return true;
+			}
+			
+			((Player) sender).openInventory(inv.getInventory());
+			return true;
 		}
 		
-		return true;
+		return false;
 	}
 	
 	/**

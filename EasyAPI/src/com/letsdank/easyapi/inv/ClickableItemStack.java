@@ -15,16 +15,34 @@
  */
 package com.letsdank.easyapi.inv;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.bukkit.inventory.ItemStack;
+
+import com.google.common.collect.Lists;
 
 /**
  * 
  */
 public class ClickableItemStack {
-	private Runnable action;
+	private String id;
+	private List<Runnable> action;
 	private ItemStack base;
 	
-	public ClickableItemStack(ItemStack base, Runnable action) {
+	public ClickableItemStack(String id, ItemStack base, Runnable action) {
+		this.id = id;
+		this.base = base;
+		this.action = new ArrayList<Runnable>();
+		this.action.add(action);
+	}
+	
+	public ClickableItemStack(String id, ItemStack base, Runnable... action) {
+		this(id, base, Lists.newArrayList(action));
+	}
+	
+	public ClickableItemStack(String id, ItemStack base, List<Runnable> action) {
+		this.id = id;
 		this.base = base;
 		this.action = action;
 	}
@@ -32,7 +50,8 @@ public class ClickableItemStack {
 	/**
 	 * @return the action
 	 */
-	public Runnable getAction() {
+	public List<Runnable> getAction() {
+		if (action == null) System.out.println("idk y action is null ;(");
 		return action;
 	}
 	
@@ -41,5 +60,16 @@ public class ClickableItemStack {
 	 */
 	public ItemStack getBase() {
 		return base;
+	}
+	
+	/**
+	 * @return the id
+	 */
+	public String getId() {
+		return id;
+	}
+	
+	void setBase(ItemStack stack) {
+		base = stack;
 	}
 }

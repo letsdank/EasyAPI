@@ -2,14 +2,19 @@ name: EasyAPI
 main: com.letsdank.easyapi.main.Main
 description: An Easy-to-Make API for developers
 author: LetsDank
-version: 0.2
+version: 0.3
 load: STARTUP
 permissions:
    eapi.command:
+      default: op
+   eapi.inv:
       default: op
 commands:
    easyapi:
       description: Shows information to configure EasyAPI plugin
       aliases: eapi
       permission: eapi.command
-      
+   inv:
+      description: Shows inventory from folder inv created by EasyAPI plugin
+      permission: eapi.inv
+      usage: 'Usage: /<command> [name]'
