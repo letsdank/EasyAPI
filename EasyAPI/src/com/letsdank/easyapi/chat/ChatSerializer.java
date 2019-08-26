@@ -16,9 +16,7 @@
 package com.letsdank.easyapi.chat;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -31,6 +29,10 @@ import net.md_5.bungee.api.ChatColor;
 public class ChatSerializer {
 	
 	public TextComponent serialize(File file, String startPos) {
+		return serialize(file, startPos, false);
+	}
+	
+	TextComponent serialize(File file, String startPos, boolean parent) {
 		YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
 		ConfigurationSection section = startPos != null && startPos != "" ?
 				config.getConfigurationSection(startPos) : config;
@@ -40,17 +42,8 @@ public class ChatSerializer {
 			return null;
 		}
 		
-		List<TextComponent> extra = null;
-		
 		section = section.getConfigurationSection("chat");
-		if (section.isConfigurationSection("extra")) {
-			extra = new ArrayList<TextComponent>();
-			
-			for (Map.Entry<String, Object> entry : 
-				section.getConfigurationSection("extra").getValues(false).entrySet()) {
-				extra.add(serialize(file, section.getConfigurationSection("extra").getConfigurationSection(entry.getKey()).getCurrentPath()));
-			}
-		}
+		
 		String text = section.getString("text");
 		if (text == null) {
 			System.out.println("Text Component should contain text value!");
@@ -87,12 +80,26 @@ public class ChatSerializer {
 		//
 		
 		if (section.isConfigurationSection("extra")) {
-			System.out.println("This feature will come soon!");
+			
+			//
+			// At first, we need to check, if itsn't parent.
+			//
+			
+			if (parent) {
+				System.out.println("Error: extra parent should not be in the extra");
+				System.out.println("Use: chatlist");
+				return null;
+			}
+			
+			List<TextComponent> extra = new ChatListSerializer().serialize(file, section.getConfigurationSection("extra").getCurrentPath(), true);
+			
+			for (TextComponent entry : extra) {
+				result.addExtra(entry);
+			}
 		}
 		
 		section = section.getParent();
 		
-		System.out.println(result.toJSONmessage());
 		return result;
 	}
 }

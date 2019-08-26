@@ -176,12 +176,12 @@ public class TextComponent {
 		
 		if (!extra.isEmpty()) {
 			JSONArray arr = new JSONArray();
-			
-			if (!isParent) {
-				for (TextComponent component : extra) {
-					arr.add(component.toJSON(true));
-				}
+			for (TextComponent component : extra) {
+				arr.add(component.toJSON());
 			}
+			
+			// don't forget to put an array of extra
+			obj.put("extra", arr);
 		}
 		
 		return obj;

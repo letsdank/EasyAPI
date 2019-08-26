@@ -16,8 +16,6 @@
 package com.letsdank.easyapi.main;
 
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,14 +54,6 @@ public class Main extends JavaPlugin {
 	private static List<ClickableInventory> clickableInventories;
 	
 	public static void broadcastJSONMessage(String msg) {
-		System.out.println(msg);
-		
-		try (FileWriter writer = new FileWriter(new File(instance.getDataFolder(), "yay.json"))) {
-			writer.write(msg);
-			writer.flush();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 		for (Player online : Bukkit.getOnlinePlayers()) {
 			((CraftPlayer) online).getHandle().playerConnection.sendPacket(new PacketPlayOutChat(ChatSerializer.a(msg)));
 		}

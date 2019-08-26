@@ -25,6 +25,9 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import com.letsdank.easyapi.chat.ChatSerializer;
+import com.letsdank.easyapi.main.Main;
+
 /**
  * 
  */
@@ -56,7 +59,7 @@ public class ActionSerializer {
 				continue;
 			}
 			
-			// ConfigurationSection section = actionSection.getConfigurationSection(entry.getKey());
+			ConfigurationSection section = actionSection.getConfigurationSection(entry.getKey());
 			
 			switch (entry.getKey().toLowerCase()) {
 				case "stack":
@@ -83,7 +86,13 @@ public class ActionSerializer {
 						}
 					}); break;
 				case "chat":
-					// early prototype, soon
+					String rawMsg = new ChatSerializer().serialize(file, section.getParent().getCurrentPath()).toJSONmessage();
+					ret.add(new Runnable() {
+						@Override
+						public void run() {
+							Main.broadcastJSONMessage(rawMsg);
+						}
+					});
 					break;
 			}
 		}
