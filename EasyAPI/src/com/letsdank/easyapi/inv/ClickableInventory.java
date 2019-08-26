@@ -149,24 +149,4 @@ public class ClickableInventory {
 	private void updateInv(int index, ItemStack button) {
 		backupInv.add(new NumerableItemStack(index, button));
 	}
-	
-
-	/**
-	 * 
-	 */
-	private class NumerableItemStack {
-		private int index;
-		private Material material;
-		private int amount;
-		private String name;
-		private List<String> lore;
-		
-		NumerableItemStack(int index, ItemStack stack) {
-			this.index = index;
-			material = stack.getType();
-			amount = stack.getAmount();
-			name = stack.getItemMeta().getDisplayName();
-			lore = stack.getItemMeta().getLore();
-		}
-	}
 }

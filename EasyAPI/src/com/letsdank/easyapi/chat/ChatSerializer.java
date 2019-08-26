@@ -21,6 +21,8 @@ import java.util.List;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
+import com.letsdank.easyapi.main.PluginLogger;
+
 import net.md_5.bungee.api.ChatColor;
 
 /**
@@ -38,7 +40,9 @@ public class ChatSerializer {
 				config.getConfigurationSection(startPos) : config;
 
 		if (!section.isConfigurationSection("chat")) {
-			System.out.println("Cannot find \"chat\" to serialize");
+			PluginLogger.error(
+					"Error while parsing file %s: cannot find chatlist",
+					file.getName());
 			return null;
 		}
 		
@@ -46,7 +50,9 @@ public class ChatSerializer {
 		
 		String text = section.getString("text");
 		if (text == null) {
-			System.out.println("Text Component should contain text value!");
+			PluginLogger.error(
+					"Error while parsing file %s: Text Component should contain text value",
+					file.getName());
 			return null;
 		}
 		
@@ -86,8 +92,9 @@ public class ChatSerializer {
 			//
 			
 			if (parent) {
-				System.out.println("Error: extra parent should not be in the extra");
-				System.out.println("Use: chatlist");
+				PluginLogger.error(
+						"Error while parsing %s: extra should not contain in extra section",
+						file.getName());
 				return null;
 			}
 			
@@ -99,6 +106,9 @@ public class ChatSerializer {
 		}
 		
 		section = section.getParent();
+		
+		PluginLogger.success("Successful serialized chat from file %s", file.getName());
+		PluginLogger.success("Start position: %s", startPos);
 		
 		return result;
 	}

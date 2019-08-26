@@ -27,6 +27,8 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import com.letsdank.easyapi.main.PluginLogger;
+
 /**
  * 
  */
@@ -38,11 +40,13 @@ public class ClickableInventorySerializer {
 				config.getConfigurationSection(startPos) : config;
 		
 		if (!config.isConfigurationSection("clickable")) {
-			System.out.println("Its not Clickable Inventory, return null");
+			PluginLogger.error(
+					"Error while parsing file %s: cannot find clickable section", 
+					file.getName());
 			return null;
 		}
 		
-		int size = 27; // default inventory size
+		int size = section.getInt("size", 27);
 		
 		section = section.getConfigurationSection("clickable");
 		List<ClickableItemStack> stacks = new ArrayList<ClickableItemStack>();
@@ -50,21 +54,17 @@ public class ClickableInventorySerializer {
 		
 		for (Map.Entry<String, Object> entry : section.getValues(false).entrySet()) {
 			if (!section.isConfigurationSection(entry.getKey())) {
-				if (entry.getKey().equalsIgnoreCase("size")) {
-					if (!(entry.getValue() instanceof Integer)) {
-						System.out.println("Size should be Integer type!");
-						return null;
-					}
-					size = (int) entry.getValue();
-				} else {
-					System.out.println("Clickable Inventory would contain only item stacks");
-					return null;
-				}
+				if (entry.getKey().equalsIgnoreCase("size")) continue;
+				PluginLogger.error(
+						"Error while parsing file %s: clickable Inventory would contain only item stacks",
+						file.getName());
+				return null;
 			}
 			
 			ConfigurationSection entrySection = section.getConfigurationSection(entry.getKey());
 			if (!entrySection.isConfigurationSection("action")) {
-				System.out.println("It's not Clickable Item Stack, return null");
+				PluginLogger.error("Error while parsing file %s: It's not Clickable Item Stack",
+						file.getName());
 				return null;
 			}
 			
@@ -75,7 +75,8 @@ public class ClickableInventorySerializer {
 			
 			Material material = Material.valueOf(entrySection.getString("type").toUpperCase());
 			if (material.equals(Material.AIR)) {
-				System.out.println("This button mustn't be empty!");
+				PluginLogger.error("Error while parsing file %s: This button mustn't be empty!",
+						file.getName());
 				return null;
 			}
 			
@@ -104,6 +105,9 @@ public class ClickableInventorySerializer {
 		for (ClickableItemStack stack : stacks) {
 			result.addButton(stack, 0);
 		}
+		
+		PluginLogger.success("Successful serialized clickable inventory from file %s", file.getName());
+		PluginLogger.success("Start position: %s", startPos);
 		
 		return result;
 	}

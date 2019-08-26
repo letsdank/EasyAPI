@@ -25,6 +25,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 
 import com.letsdank.easyapi.inv.ItemStackSerializer;
+import com.letsdank.easyapi.main.PluginLogger;
 
 /**
  * 
@@ -50,6 +51,7 @@ public class CustomCraftSerializer {
 				id = section.getParent().getName();
 				if (id == null) {
 					error(file, "Could not find id for Custom Craft");
+					return null;
 				}
 			} else {
 				id = "craft";
@@ -75,6 +77,9 @@ public class CustomCraftSerializer {
 		ItemStack craftResult = new ItemStackSerializer().serialize(file,
 				section.getConfigurationSection("result").getCurrentPath());
 		
+		PluginLogger.success("Successful serialized custom craft from file %s", file.getName());
+		PluginLogger.success("Start position: %s", startPos);
+		
 		return new CustomCraft(id, craftType, craftPattern, craftKeys, craftResult);
 	}
 
@@ -83,7 +88,6 @@ public class CustomCraftSerializer {
 	 * @param reason
 	 */
 	private void error(File file, String reason) {
-		System.out.println("Error while parsing file " + file.getPath());
-		System.out.println("Reason: " + reason);
+		PluginLogger.error("Error while parsing file %s: %s", file.getName(), reason);
 	}
 }

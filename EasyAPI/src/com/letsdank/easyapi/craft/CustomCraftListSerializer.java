@@ -23,6 +23,8 @@ import java.util.Map;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
+import com.letsdank.easyapi.main.PluginLogger;
+
 /**
  * 
  */
@@ -57,6 +59,9 @@ public class CustomCraftListSerializer {
 					section.getConfigurationSection(entry.getKey()).getCurrentPath()));
 		}
 		
+		PluginLogger.success("Successful serialized custom craft list from file %s", file.getName());
+		PluginLogger.success("Start position: %s", startPos);
+		
 		return result;
 	}
 
@@ -65,7 +70,7 @@ public class CustomCraftListSerializer {
 	 * @param reason
 	 */
 	private void error(File file, String reason) {
-		System.out.println("Error while parsing file " + file);
-		System.out.println("Reason: " + reason);
+		PluginLogger.error("Error while parsing file %s: %s",
+				file.getName(), reason);
 	}
 }

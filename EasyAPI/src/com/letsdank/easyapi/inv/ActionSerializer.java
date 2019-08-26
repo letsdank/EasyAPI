@@ -27,6 +27,7 @@ import org.bukkit.inventory.ItemStack;
 
 import com.letsdank.easyapi.chat.ChatSerializer;
 import com.letsdank.easyapi.main.Main;
+import com.letsdank.easyapi.main.PluginLogger;
 
 /**
  * 
@@ -47,7 +48,9 @@ public class ActionSerializer {
 				config.getConfigurationSection(startPos) : config;
 		
 		if (!actionSection.isConfigurationSection("action")) {
-			System.out.println("Action not found.");
+			PluginLogger.error(
+					"Error while parsing file %s: cannot find action section", 
+					file.getName());
 			return null;
 		}
 		
@@ -96,6 +99,9 @@ public class ActionSerializer {
 					break;
 			}
 		}
+		
+		PluginLogger.success("Successful serialized action from file %s", file.getName());
+		PluginLogger.success("Start position: %s", startPos);
 		
 		return ret;
 	}

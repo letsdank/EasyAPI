@@ -23,6 +23,8 @@ import java.util.Map;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
+import com.letsdank.easyapi.main.PluginLogger;
+
 /**
  * 
  */
@@ -38,7 +40,9 @@ public class ChatListSerializer {
 				config.getConfigurationSection(startPos) : config;
 		
 		if (!section.isConfigurationSection("chatlist")) {
-			System.out.println("Cannot find chatlist, returned null");
+			PluginLogger.error(
+					"Error while parsing file %s: cannot find chatlist", 
+					file.getName());
 			return null;
 		}
 		
@@ -48,7 +52,9 @@ public class ChatListSerializer {
 		
 		for (Map.Entry<String, Object> entry : section.getValues(false).entrySet()) {
 			if (!section.isConfigurationSection(entry.getKey())) {
-				System.out.println("This list should contain only sections, returned null");
+				PluginLogger.error(
+						"Error while parsing file %s: this list should contain only sections",
+						file.getName());
 				return null;
 			}
 			
@@ -56,6 +62,9 @@ public class ChatListSerializer {
 			
 			result.add(new ChatSerializer().serialize(file, entrySection.getCurrentPath(), extra));
 		}
+		
+		PluginLogger.success("Successful serialized chat list from file %s", file.getName());
+		PluginLogger.success("Start position: %s", startPos);
 		
 		return result;
 	}

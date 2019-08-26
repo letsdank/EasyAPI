@@ -23,6 +23,8 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 
+import com.letsdank.easyapi.main.PluginLogger;
+
 /**
  * 
  */
@@ -56,6 +58,9 @@ public class ItemStackSerializer {
 					.withLore(lore).build();
 		}
 		
+		PluginLogger.success("Successful serialized item stack from file %s", file.getName());
+		PluginLogger.success("Start position: %s", startPos);
+		
 		error(file, "Item stack must typed");
 		return null;
 	}
@@ -65,8 +70,7 @@ public class ItemStackSerializer {
 	 * @param string
 	 */
 	private void error(File file, String reason) {
-		System.out.println("Error while parsing file " + file.getPath());
-		System.out.println("Reason: " + reason);
+		PluginLogger.error("Error while parsing file %s: %s", file.getName(), reason);
 	}
 
 }

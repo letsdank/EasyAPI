@@ -24,6 +24,8 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 
+import com.letsdank.easyapi.main.PluginLogger;
+
 /**
  * 
  */
@@ -66,8 +68,11 @@ public class ItemListSerializer {
 		}
 		
 		if (list.size() < 0) {
-			System.out.println("ItemStack list is empty, returned empty list");
+			error(file, "ItemStack list is empty, returned empty list");
 		}
+		
+		PluginLogger.success("Successful serialized item list from file %s", file.getName());
+		PluginLogger.success("Start position: %s", startPos);
 		
 		return list;
 	}
@@ -79,8 +84,7 @@ public class ItemListSerializer {
 	 * @param reason The reason to occur this error
 	 */
 	private void error(File file, String reason) {
-		System.out.println("Error while parsing file " + file.getPath());
-		System.out.println("Reason: " + reason);
+		PluginLogger.error("Error while parsing file %s: %s", file.getName(), reason);
 	}
 
 }

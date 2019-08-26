@@ -39,6 +39,7 @@ import com.letsdank.easyapi.craft.CustomCraftListSerializer;
 import com.letsdank.easyapi.inv.ClickableInventory;
 import com.letsdank.easyapi.inv.ClickableInventorySerializer;
 import com.letsdank.easyapi.inv.ItemStackSerializer;
+import com.letsdank.easyapi.inv.SettingsInventory;
 
 import net.minecraft.server.v1_8_R1.ChatSerializer;
 import net.minecraft.server.v1_8_R1.PacketPlayOutChat;
@@ -61,6 +62,9 @@ public class Main extends JavaPlugin {
 	
 	@Override
 	public void onEnable() {
+		new PluginLogger(getLogger());
+		PluginLogger.success("Initializated success!");
+		
 		stacks = new ArrayList<ItemStack>();
 		customCrafts = new ArrayList<CustomCraft>();
 		clickableInventories = new ArrayList<ClickableInventory>();
@@ -105,7 +109,9 @@ public class Main extends JavaPlugin {
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if (command.getName().equalsIgnoreCase("easyapi")) {
-			sender.sendMessage("Give me cookies");
+			if (sender instanceof Player) {
+				((Player) sender).openInventory(new SettingsInventory().getInv());
+			}
 			
 			return true;
 		} else if (command.getName().equalsIgnoreCase("inv")) {
@@ -143,7 +149,7 @@ public class Main extends JavaPlugin {
 			}
 			
 			if (inv == null) {
-				System.out.println("Could not find inventory with id " + id);
+				sender.sendMessage("Could not find inventory with id " + id);
 				return true;
 			}
 			
