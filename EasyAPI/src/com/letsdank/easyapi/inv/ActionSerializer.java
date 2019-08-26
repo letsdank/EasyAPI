@@ -55,7 +55,7 @@ public class ActionSerializer {
 			if (!actionSection.isConfigurationSection(entry.getKey())) {
 				continue;
 			}
-
+			
 			// ConfigurationSection section = actionSection.getConfigurationSection(entry.getKey());
 			
 			switch (entry.getKey().toLowerCase()) {
@@ -81,9 +81,10 @@ public class ActionSerializer {
 							
 							inv.setItem(pos, newStack);
 						}
-					});
+					}); break;
 				case "chat":
-					
+					// early prototype, soon
+					break;
 			}
 		}
 		

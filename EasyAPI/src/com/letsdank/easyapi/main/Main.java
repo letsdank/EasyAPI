@@ -16,12 +16,15 @@
 package com.letsdank.easyapi.main;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.craftbukkit.v1_8_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -39,6 +42,9 @@ import com.letsdank.easyapi.inv.ClickableInventory;
 import com.letsdank.easyapi.inv.ClickableInventorySerializer;
 import com.letsdank.easyapi.inv.ItemStackSerializer;
 
+import net.minecraft.server.v1_8_R1.ChatSerializer;
+import net.minecraft.server.v1_8_R1.PacketPlayOutChat;
+
 /**
  * 
  */
@@ -48,6 +54,20 @@ public class Main extends JavaPlugin {
 	private static List<ItemStack> stacks;
 	private static List<CustomCraft> customCrafts;
 	private static List<ClickableInventory> clickableInventories;
+	
+	public static void broadcastJSONMessage(String msg) {
+		System.out.println(msg);
+		
+		try (FileWriter writer = new FileWriter(new File(instance.getDataFolder(), "yay.json"))) {
+			writer.write(msg);
+			writer.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		for (Player online : Bukkit.getOnlinePlayers()) {
+			((CraftPlayer) online).getHandle().playerConnection.sendPacket(new PacketPlayOutChat(ChatSerializer.a(msg)));
+		}
+	}
 	
 	@Override
 	public void onEnable() {
