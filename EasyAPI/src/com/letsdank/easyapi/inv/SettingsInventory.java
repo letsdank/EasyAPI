@@ -40,7 +40,6 @@ public class SettingsInventory {
 		inv = Bukkit.createInventory(null, 18);
 		
 		setButtons();
-		reload();
 		
 		Bukkit.getPluginManager().registerEvents(new Listener() {
 			@EventHandler
@@ -54,7 +53,6 @@ public class SettingsInventory {
 				if (e.getCurrentItem().getItemMeta().getDisplayName().contains("Info logging")) {
 					PluginLogger.infoLogging = !PluginLogger.infoLogging;
 					setButtons();
-					reload();
 					e.setCancelled(true);
 					return;
 				}
@@ -77,6 +75,12 @@ public class SettingsInventory {
 				.withLore("&7You can inspect the loading of all templates on the console",
 						"&7Click to " + (infoLogging ? "disable" : "enable")).build()
 				));
+		
+		//
+		// Reload the inventory
+		//
+		
+		reload();
 	}
 	
 	/**
