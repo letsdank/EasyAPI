@@ -15,15 +15,31 @@
  */
 package com.letsdank.easyapi.utils;
 
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.craftbukkit.v1_8_R1.CraftServer;
+import org.bukkit.craftbukkit.v1_8_R1.CraftWorld;
+
+import com.mojang.authlib.GameProfile;
+
+import net.minecraft.server.v1_8_R1.EntityPlayer;
+import net.minecraft.server.v1_8_R1.MinecraftServer;
+import net.minecraft.server.v1_8_R1.PlayerInteractManager;
+import net.minecraft.server.v1_8_R1.WorldServer;
+
 /**
  * 
  */
 public class PacketManager {
 	
-	public static void spawnPlayer(String playerSkin) {
+	public static EntityPlayer spawnPlayer(String playerSkin, Location loc) {
 		
-		//
-		// prototype, soon..
-		//
+		MinecraftServer server = ((CraftServer) Bukkit.getServer()).getServer();
+		WorldServer nmsWorld = ((CraftWorld) Bukkit.getWorlds().get(0)).getHandle();
+		
+		EntityPlayer npc = new EntityPlayer(server, nmsWorld, new GameProfile(MojangAPI.getUUIDFromName(playerSkin), playerSkin), new PlayerInteractManager(nmsWorld));
+		
+		npc.setLocation(loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
+		return npc;
 	}
 }

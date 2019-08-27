@@ -2,7 +2,7 @@ name: EasyAPI
 main: com.letsdank.easyapi.main.Main
 description: An Easy-to-Make API for developers
 author: LetsDank
-version: 0.5
+version: 0.6
 load: STARTUP
 permissions:
    eapi.command:
@@ -21,3 +21,9 @@ commands:
    craft:
       description: Shows Custom Craft recipes listed from folder customcraft.
       usage: 'Usage: /<command> [name] or /<command> list'
+   spawnnpc:
+      description: Spawns NPC to player location
+      usage: 'Usage: /<command> [npcID] [playerName]'
+   destroynpc:
+      description : Destroys NPC by unique ID
+      usage: 'Usage: /<command> [npcID]'

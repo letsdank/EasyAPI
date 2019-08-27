@@ -17,9 +17,12 @@ package com.letsdank.easyapi.main;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.v1_8_R1.entity.CraftPlayer;
@@ -30,6 +33,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -40,19 +44,31 @@ import com.letsdank.easyapi.inv.ClickableInventory;
 import com.letsdank.easyapi.inv.ClickableInventorySerializer;
 import com.letsdank.easyapi.inv.ItemStackSerializer;
 import com.letsdank.easyapi.inv.SettingsInventory;
+import com.letsdank.easyapi.utils.PacketManager;
 
 import net.minecraft.server.v1_8_R1.ChatSerializer;
+import net.minecraft.server.v1_8_R1.EntityPlayer;
+import net.minecraft.server.v1_8_R1.EnumPlayerInfoAction;
 import net.minecraft.server.v1_8_R1.PacketPlayOutChat;
+import net.minecraft.server.v1_8_R1.PacketPlayOutEntityDestroy;
+import net.minecraft.server.v1_8_R1.PacketPlayOutNamedEntitySpawn;
+import net.minecraft.server.v1_8_R1.PacketPlayOutPlayerInfo;
+import net.minecraft.server.v1_8_R1.PlayerConnection;
 
 /**
  * 
  */
 public class Main extends JavaPlugin {
-	
 	private static JavaPlugin instance;
 	private static List<ItemStack> stacks;
 	private static List<CustomCraft> customCrafts;
 	private static List<ClickableInventory> clickableInventories;
+	
+	private static Map<String, EntityPlayer> npcs;
+	
+	private static final String[] commands = new String[] {
+			"infologging"
+	};
 	
 	public static void broadcastJSONMessage(String msg) {
 		for (Player online : Bukkit.getOnlinePlayers()) {
@@ -68,6 +84,7 @@ public class Main extends JavaPlugin {
 		stacks = new ArrayList<ItemStack>();
 		customCrafts = new ArrayList<CustomCraft>();
 		clickableInventories = new ArrayList<ClickableInventory>();
+		npcs = new HashMap<String, EntityPlayer>();
 		
 		instance = this;
 		
@@ -103,14 +120,50 @@ public class Main extends JavaPlugin {
 		for (CustomCraft craft : customCrafts) {
 			Bukkit.addRecipe(craft.toRecipe());
 		}
+		
+		//
+		// We cannot see a npc while we will not send packet to see those npcs.
+		//
+		
+		Bukkit.getPluginManager().registerEvents(new Listener() {
+			@EventHandler
+			public void onJoin(PlayerJoinEvent e) {
+				if (!npcs.isEmpty()) System.out.println("list is not empty");
+				for (Map.Entry<String, EntityPlayer> entry : npcs.entrySet()) {
+					showNpc(e.getPlayer(), entry.getValue());
+				}
+			}
+		}, this);
 	}
 
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if (command.getName().equalsIgnoreCase("easyapi")) {
-			if (sender instanceof Player) {
-				((Player) sender).openInventory(new SettingsInventory().getInv());
+			if (args.length <= 0) {
+				if (sender instanceof Player) {
+					((Player) sender).openInventory(new SettingsInventory().getInv());
+				} else {
+					sender.sendMessage("This feature is available only for players");
+					return true;
+				}
+			} else {
+				String arg = args[0];
+				
+				if (arg.equalsIgnoreCase("help")) {
+					
+					//
+					// show usage
+					//
+					
+					sender.sendMessage("List of commands available for managing plugin:");
+					for (String cmd : commands) {
+						sender.sendMessage(" - " + cmd);
+					}
+				} else if (arg.equalsIgnoreCase("infologging")) {
+					sender.sendMessage("Setting infoLogging to" + !PluginLogger.infoLogging);
+					PluginLogger.infoLogging = !PluginLogger.infoLogging;
+				}
 			}
 			
 			return true;
@@ -222,6 +275,51 @@ public class Main extends JavaPlugin {
 					}
 				}
 			}, Main.instance);
+		} else if (command.getName().equalsIgnoreCase("spawnnpc")) {
+			if (args.length <= 1) return false; // print usage
+			
+			String id = args[0];
+			String skin = args[1];
+			
+			if (!(sender instanceof Player)) {
+				sender.sendMessage("This feature is available only for players");
+				return true;
+			}
+			
+			for (Map.Entry<String, EntityPlayer> entry : npcs.entrySet()) {
+				if (id.equalsIgnoreCase(entry.getKey())) {
+					sender.sendMessage("This npc with ID " + id + " are exists");
+					return true;
+				}
+			}
+			
+			Player p = (Player) sender;
+			Location loc = p.getLocation();
+			EntityPlayer player = PacketManager.spawnPlayer(skin, loc);
+			
+			npcs.put(id, player);
+			showNpc(p, player);
+			return true;
+		} else if (command.getName().equalsIgnoreCase("destroynpc")) {
+			if (args.length <= 0) return false;
+			
+			String id = args[0];
+			EntityPlayer removeReturned = null;
+			
+			for (Map.Entry<String, EntityPlayer> entry : npcs.entrySet()) {
+				if (entry.getKey().equalsIgnoreCase(id)) {
+					removeReturned = npcs.remove(entry.getKey());
+				}
+			}
+			
+			if (removeReturned == null) {
+				sender.sendMessage("The NPC with ID " + id + " is not exist");
+				return true;
+			}
+			
+			hideNpc(removeReturned);
+			
+			return true;
 		}
 		
 		return false;
@@ -246,5 +344,27 @@ public class Main extends JavaPlugin {
 	 */
 	public static JavaPlugin getInstance() {
 		return instance;
+	}
+	
+	public static void addNpc(String id, EntityPlayer npc) {
+		npcs.put(id, npc);
+	}
+	
+	public static EntityPlayer removeNpc(String id) {
+		return npcs.remove(id);
+	}
+	
+	private void showNpc(Player p, EntityPlayer player) {
+		PlayerConnection connection = ((CraftPlayer) p).getHandle().playerConnection;
+		
+		connection.sendPacket(new PacketPlayOutPlayerInfo(EnumPlayerInfoAction.ADD_PLAYER, player));
+		connection.sendPacket(new PacketPlayOutNamedEntitySpawn(player));
+	}
+	
+	private void hideNpc(EntityPlayer player) {
+		for (Player p : Bukkit.getOnlinePlayers()) {
+			PlayerConnection connection = ((CraftPlayer) p).getHandle().playerConnection;
+			connection.sendPacket(new PacketPlayOutEntityDestroy(player.getId()));
+		}
 	}
 }
