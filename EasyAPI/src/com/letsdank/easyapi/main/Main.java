@@ -49,6 +49,7 @@ import com.letsdank.easyapi.utils.PacketManager;
 import net.minecraft.server.v1_8_R1.ChatSerializer;
 import net.minecraft.server.v1_8_R1.EntityPlayer;
 import net.minecraft.server.v1_8_R1.EnumPlayerInfoAction;
+import net.minecraft.server.v1_8_R1.PacketPlayOutAnimation;
 import net.minecraft.server.v1_8_R1.PacketPlayOutChat;
 import net.minecraft.server.v1_8_R1.PacketPlayOutEntityDestroy;
 import net.minecraft.server.v1_8_R1.PacketPlayOutNamedEntitySpawn;
@@ -128,14 +129,17 @@ public class Main extends JavaPlugin {
 		Bukkit.getPluginManager().registerEvents(new Listener() {
 			@EventHandler
 			public void onJoin(PlayerJoinEvent e) {
-				if (!npcs.isEmpty()) System.out.println("list is not empty");
 				for (Map.Entry<String, EntityPlayer> entry : npcs.entrySet()) {
-					showNpc(e.getPlayer(), entry.getValue());
+					showNpc(entry.getValue(), e.getPlayer());
 				}
 			}
 		}, this);
 	}
-
+	
+	@Override
+	public void onDisable() {
+		clearNpc();
+	}
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -296,9 +300,9 @@ public class Main extends JavaPlugin {
 			Player p = (Player) sender;
 			Location loc = p.getLocation();
 			EntityPlayer player = PacketManager.spawnPlayer(skin, loc);
-			
+
 			npcs.put(id, player);
-			showNpc(p, player);
+			showNpc(player);
 			return true;
 		} else if (command.getName().equalsIgnoreCase("destroynpc")) {
 			if (args.length <= 0) return false;
@@ -319,6 +323,9 @@ public class Main extends JavaPlugin {
 			
 			hideNpc(removeReturned);
 			
+			return true;
+		} else if (command.getName().equalsIgnoreCase("clearnpc")) {
+			clearNpc();
 			return true;
 		}
 		
@@ -354,11 +361,18 @@ public class Main extends JavaPlugin {
 		return npcs.remove(id);
 	}
 	
-	private void showNpc(Player p, EntityPlayer player) {
-		PlayerConnection connection = ((CraftPlayer) p).getHandle().playerConnection;
+	private void showNpc(EntityPlayer player) {
+		for (Player p : Bukkit.getOnlinePlayers()) {
+			showNpc(player, p);
+		}
+	}
+	
+	private void showNpc(EntityPlayer player, Player to) {
+		PlayerConnection connection = ((CraftPlayer) to).getHandle().playerConnection;
 		
 		connection.sendPacket(new PacketPlayOutPlayerInfo(EnumPlayerInfoAction.ADD_PLAYER, player));
 		connection.sendPacket(new PacketPlayOutNamedEntitySpawn(player));
+		connection.sendPacket(new PacketPlayOutAnimation(player, 1));
 	}
 	
 	private void hideNpc(EntityPlayer player) {
@@ -366,5 +380,14 @@ public class Main extends JavaPlugin {
 			PlayerConnection connection = ((CraftPlayer) p).getHandle().playerConnection;
 			connection.sendPacket(new PacketPlayOutEntityDestroy(player.getId()));
 		}
+	}
+	
+	private void clearNpc() {
+		for (Map.Entry<String, EntityPlayer> entry : npcs.entrySet()) {
+			EntityPlayer player = entry.getValue();
+			hideNpc(player);
+		}
+		
+		npcs.clear();
 	}
 }

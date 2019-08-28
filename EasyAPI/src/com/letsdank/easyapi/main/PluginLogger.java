@@ -25,7 +25,7 @@ import java.util.logging.Logger;
  */
 public class PluginLogger {
 	private static Logger logger;
-	public static boolean infoLogging = false;
+	public static boolean infoLogging = true;
 	
 	public PluginLogger(Logger target) {
 		logger = target;

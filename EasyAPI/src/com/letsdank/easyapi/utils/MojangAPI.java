@@ -35,11 +35,13 @@ public class MojangAPI {
 	public static UUID getUUIDFromName(String playerName) {
 		String url = "https://api.mojang.com/users/profiles/minecraft/" + playerName;
 		String json = readWebFile(url);
+		if (json == null || json == "") {
+			throw new IllegalArgumentException("Cannot find player with name " + playerName);
+		}
 		UUID result = null;
 		try {
 			JSONObject obj = (JSONObject) new JSONParser().parse(json);
 			result = toUUID((String) obj.get("id"));
-			System.out.println(result);
 		} catch (ParseException e) {
 			throw new RuntimeException(e);
 		}
@@ -66,5 +68,17 @@ public class MojangAPI {
 		}
 	}
 	
-	
+	public static JSONObject getSession(String playerName) {
+		String playerUUID = getUUIDFromName(playerName).toString().replace("-", "");
+		String url = "https://sessionserver.mojang.com/session/minecraft/profile/" + playerUUID + "?unsigned=false";
+		String json = readWebFile(url);
+		
+		try {
+			return (JSONObject) new JSONParser().parse(json);
+		} catch (ParseException e) {
+			throw new RuntimeException(e);
+		} finally {
+			PluginLogger.success("Got the session from player %s", playerName);
+		}
+	}
 }

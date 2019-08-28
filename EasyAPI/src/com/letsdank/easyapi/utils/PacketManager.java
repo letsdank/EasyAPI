@@ -19,8 +19,11 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_8_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_8_R1.CraftWorld;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
 
 import net.minecraft.server.v1_8_R1.EntityPlayer;
 import net.minecraft.server.v1_8_R1.MinecraftServer;
@@ -37,9 +40,26 @@ public class PacketManager {
 		MinecraftServer server = ((CraftServer) Bukkit.getServer()).getServer();
 		WorldServer nmsWorld = ((CraftWorld) Bukkit.getWorlds().get(0)).getHandle();
 		
-		EntityPlayer npc = new EntityPlayer(server, nmsWorld, new GameProfile(MojangAPI.getUUIDFromName(playerSkin), playerSkin), new PlayerInteractManager(nmsWorld));
+		EntityPlayer npc = new EntityPlayer(server, nmsWorld, getGameProfileWithTexture(playerSkin), new PlayerInteractManager(nmsWorld));
 		
 		npc.setLocation(loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
 		return npc;
+	}
+	
+	private static GameProfile getGameProfileWithTexture(String playerSkin) {
+		GameProfile profile = new GameProfile(MojangAPI.getUUIDFromName(playerSkin), playerSkin);
+		
+		//
+		// Parsing JSON file
+		//
+		
+		JSONObject obj = MojangAPI.getSession(playerSkin);
+		JSONArray arr = (JSONArray) obj.get("properties");
+		String texture = (String) ((JSONObject)arr.get(0)).get("value");
+		String signature = (String) ((JSONObject)arr.get(0)).get("signature");
+		
+		profile.getProperties().put("textures", new Property("textures", texture, signature));
+		
+		return profile;
 	}
 }

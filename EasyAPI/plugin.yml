@@ -9,6 +9,8 @@ permissions:
       default: op
    eapi.inv:
       default: op
+   eapi.npc.edit:
+      default: op
 commands:
    easyapi:
       description: Shows information to configure EasyAPI plugin
@@ -25,5 +27,8 @@ commands:
       description: Spawns NPC to player location
       usage: 'Usage: /<command> [npcID] [playerName]'
    destroynpc:
-      description : Destroys NPC by unique ID
+      description: Destroys NPC by unique ID
       usage: 'Usage: /<command> [npcID]'
+   clearnpc:
+      description: Clears all NPC
+      usage: 'Usage: /<command>'
