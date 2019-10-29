@@ -17,33 +17,66 @@ package com.letsdank.easyapi.utils;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_8_R1.CraftServer;
-import org.bukkit.craftbukkit.v1_8_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_8_R3.CraftServer;
+import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
+import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import com.letsdank.easyapi.main.Main;
+import com.letsdank.easyapi.npc.EntityBot;
+import com.letsdank.easyapi.npc.EnumPlayerAnimation;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 
-import net.minecraft.server.v1_8_R1.EntityPlayer;
-import net.minecraft.server.v1_8_R1.MinecraftServer;
-import net.minecraft.server.v1_8_R1.PlayerInteractManager;
-import net.minecraft.server.v1_8_R1.WorldServer;
+import net.minecraft.server.v1_8_R3.EntityPlayer;
+import net.minecraft.server.v1_8_R3.EnumProtocolDirection;
+import net.minecraft.server.v1_8_R3.MinecraftServer;
+import net.minecraft.server.v1_8_R3.NetworkManager;
+import net.minecraft.server.v1_8_R3.PlayerConnection;
+import net.minecraft.server.v1_8_R3.PlayerInteractManager;
+import net.minecraft.server.v1_8_R3.WorldServer;
 
 /**
  * 
  */
 public class PacketManager {
 	
+	
 	public static EntityPlayer spawnPlayer(String playerSkin, Location loc) {
 		
 		MinecraftServer server = ((CraftServer) Bukkit.getServer()).getServer();
 		WorldServer nmsWorld = ((CraftWorld) Bukkit.getWorlds().get(0)).getHandle();
 		
-		EntityPlayer npc = new EntityPlayer(server, nmsWorld, getGameProfileWithTexture(playerSkin), new PlayerInteractManager(nmsWorld));
+		EntityBot npc = new EntityBot(server, nmsWorld, getGameProfileWithTexture(playerSkin), new PlayerInteractManager(nmsWorld));
 		
 		npc.setLocation(loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
+		
+		npc.playerConnection = new PlayerConnection(server, new NetworkManager(EnumProtocolDirection.SERVERBOUND), npc);
+		
+		nmsWorld.addEntity(npc, SpawnReason.CUSTOM);
+		
+		npc.setShouldJump();
+		
+		Bukkit.getScheduler().runTaskTimer(Main.getInstance(), () -> {
+			npc.playAnimation(npc.getBukkitEntity().isSneaking() ? 
+					EnumPlayerAnimation.STOP_SNEAKING : EnumPlayerAnimation.SNEAK);
+			npc.playAnimation(EnumPlayerAnimation.ARM_SWING);
+		}, 0, 5L);
+		
+		Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
+			npc.setTargetLook(((CraftPlayer)Bukkit.getOnlinePlayers().iterator().next()).getHandle());
+		}, 40L);
 		return npc;
+	}
+	
+	public static void jumpPlayer(EntityPlayer p) {
+		p.getBukkitEntity().setVelocity(p.getBukkitEntity().getVelocity().setY(5.0));
+	}
+	
+	public static void teleportPlayer(EntityPlayer p, Location loc, boolean force) {
+		p.setPositionRotation(loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
 	}
 	
 	private static GameProfile getGameProfileWithTexture(String playerSkin) {

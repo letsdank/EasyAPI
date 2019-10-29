@@ -32,3 +32,6 @@ commands:
    clearnpc:
       description: Clears all NPC
       usage: 'Usage: /<command>'
+   inject:
+      description: Inspecting all packets sending from player
+      usage: 'Usage: /<command> or /<command> [playerName]'

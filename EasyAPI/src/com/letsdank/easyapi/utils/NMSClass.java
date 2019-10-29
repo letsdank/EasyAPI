@@ -15,6 +15,8 @@
  */
 package com.letsdank.easyapi.utils;
 
+import java.lang.reflect.Field;
+
 import org.bukkit.Bukkit;
 
 import com.letsdank.easyapi.main.PluginLogger;
@@ -49,6 +51,63 @@ public class NMSClass {
 		} catch (ClassNotFoundException e) {
 			PluginLogger.error("Could not find class %s. Is it actually minecraft server?", name);
 			return null;
+		}
+	}
+
+	/**
+	 * @param networkManager
+	 * @param string
+	 * @return
+	 */
+	public static Object getDeclaredField(Object obj, String fieldName) {
+		try {
+			Class<?> clazz = obj.getClass();
+			Field field = clazz.getDeclaredField(fieldName);
+			field.setAccessible(true);
+			return field.get(obj);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	public static Field getField(Class<?> clazz, String fieldName) {
+		try {
+			Field field = clazz.getDeclaredField(fieldName);
+			field.setAccessible(true);
+			return field;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * @param entityNetworkManager
+	 * @param string
+	 * @param abstractChannel
+	 */
+	public static void setDeclaredField(Object parent, String fieldName,
+			Object value) {
+		setDeclaredField(parent.getClass(), parent, fieldName, value, false);
+	}
+	
+	private static void setDeclaredField(Class<?> clazz, Object obj, String fieldName, Object value, boolean isParent) {
+		try {
+			Field field = clazz.getDeclaredField(fieldName);
+			field.setAccessible(true);
+			field.set(obj, value);
+		} catch (Exception e) {
+			//
+			// trying with parent class
+			//
+			
+			if (isParent) {
+				throw new RuntimeException(e);
+			}
+			try {
+				setDeclaredField(clazz.getSuperclass(), obj, fieldName, value, true);
+			} catch (Exception ee) {
+				throw new RuntimeException(ee);
+			}
 		}
 	}
 }

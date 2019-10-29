@@ -25,11 +25,13 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_8_R1.entity.CraftPlayer;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
@@ -44,17 +46,19 @@ import com.letsdank.easyapi.inv.ClickableInventory;
 import com.letsdank.easyapi.inv.ClickableInventorySerializer;
 import com.letsdank.easyapi.inv.ItemStackSerializer;
 import com.letsdank.easyapi.inv.SettingsInventory;
+import com.letsdank.easyapi.utils.PacketInjector;
 import com.letsdank.easyapi.utils.PacketManager;
 
-import net.minecraft.server.v1_8_R1.ChatSerializer;
-import net.minecraft.server.v1_8_R1.EntityPlayer;
-import net.minecraft.server.v1_8_R1.EnumPlayerInfoAction;
-import net.minecraft.server.v1_8_R1.PacketPlayOutAnimation;
-import net.minecraft.server.v1_8_R1.PacketPlayOutChat;
-import net.minecraft.server.v1_8_R1.PacketPlayOutEntityDestroy;
-import net.minecraft.server.v1_8_R1.PacketPlayOutNamedEntitySpawn;
-import net.minecraft.server.v1_8_R1.PacketPlayOutPlayerInfo;
-import net.minecraft.server.v1_8_R1.PlayerConnection;
+import net.minecraft.server.v1_8_R3.EntityPlayer;
+import net.minecraft.server.v1_8_R3.IChatBaseComponent.ChatSerializer;
+import net.minecraft.server.v1_8_R3.PacketPlayOutChat;
+import net.minecraft.server.v1_8_R3.PacketPlayOutEntity;
+import net.minecraft.server.v1_8_R3.PacketPlayOutEntityDestroy;
+import net.minecraft.server.v1_8_R3.PacketPlayOutEntityHeadRotation;
+import net.minecraft.server.v1_8_R3.PacketPlayOutNamedEntitySpawn;
+import net.minecraft.server.v1_8_R3.PacketPlayOutPlayerInfo;
+import net.minecraft.server.v1_8_R3.PacketPlayOutPlayerInfo.EnumPlayerInfoAction;
+import net.minecraft.server.v1_8_R3.PlayerConnection;
 
 /**
  * 
@@ -79,6 +83,7 @@ public class Main extends JavaPlugin {
 	
 	@Override
 	public void onEnable() {
+		getDefaults();
 		new PluginLogger(getLogger());
 		PluginLogger.success("Initializated success!");
 		
@@ -128,14 +133,42 @@ public class Main extends JavaPlugin {
 		
 		Bukkit.getPluginManager().registerEvents(new Listener() {
 			@EventHandler
-			public void onJoin(PlayerJoinEvent e) {
+			public void onJoin(PlayerJoinEvent e) {	
 				for (Map.Entry<String, EntityPlayer> entry : npcs.entrySet()) {
 					showNpc(entry.getValue(), e.getPlayer());
+				}
+			}
+			
+			@EventHandler
+			public void onKill(PlayerDeathEvent e) {
+				String entityId = null;
+				for (Map.Entry<String, EntityPlayer> entry : npcs.entrySet()) {
+					if (entry.getValue().getId() == e.getEntity().getEntityId()) {
+						entityId = entry.getKey();
+					}
+				}
+				
+				if (entityId != null) {
+					final String ugh = entityId;
+					Bukkit.getScheduler().runTaskLater(Main.instance, () -> {
+						removeNpc(ugh);
+					}, 35L);
 				}
 			}
 		}, this);
 	}
 	
+	private void getDefaults() {
+		FileConfiguration config = getConfig();
+		
+		PluginLogger.infoLogging = config.getBoolean("infoLogging", false);
+		
+
+		config.set("infoLogging", PluginLogger.infoLogging);
+		
+		saveConfig();
+	}
+
 	@Override
 	public void onDisable() {
 		clearNpc();
@@ -327,6 +360,31 @@ public class Main extends JavaPlugin {
 		} else if (command.getName().equalsIgnoreCase("clearnpc")) {
 			clearNpc();
 			return true;
+		} else if (command.getName().equalsIgnoreCase("inject")) {
+			String playerName = null;
+			if (args.length > 0) playerName = args[0];
+			
+			if (playerName == null) {
+				if (!(sender instanceof Player)) {
+					sender.sendMessage("This command is available only for players");
+					return true;
+				} else {
+					playerName = ((Player) sender).getName();
+				}
+			}
+			
+			Player p = Bukkit.getPlayer(playerName);
+			
+			if (p == null) {
+				sender.sendMessage("This player is offline!");
+				return true;
+			}
+			
+			PacketInjector.injectPlayer(p);
+
+			sender.sendMessage("§aWe are starting inspecting player " + p.getName());
+			sender.sendMessage("§aYou can see the sending packets in the console");
+			return true;
 		}
 		
 		return false;
@@ -358,7 +416,9 @@ public class Main extends JavaPlugin {
 	}
 	
 	public static EntityPlayer removeNpc(String id) {
-		return npcs.remove(id);
+		EntityPlayer player = npcs.remove(id);
+		player.world.removeEntity(player);
+		return player;
 	}
 	
 	private void showNpc(EntityPlayer player) {
@@ -372,7 +432,10 @@ public class Main extends JavaPlugin {
 		
 		connection.sendPacket(new PacketPlayOutPlayerInfo(EnumPlayerInfoAction.ADD_PLAYER, player));
 		connection.sendPacket(new PacketPlayOutNamedEntitySpawn(player));
-		connection.sendPacket(new PacketPlayOutAnimation(player, 1));
+		connection.sendPacket(new PacketPlayOutEntity(player.getId()));
+		connection.sendPacket(new PacketPlayOutEntityHeadRotation(player, (byte)((int)player.yaw * 256.0F / 360.0F)));
+		// show all skin customizations
+		player.getDataWatcher().watch(10, Byte.valueOf((byte) 0xFFFF));
 	}
 	
 	private void hideNpc(EntityPlayer player) {
@@ -385,6 +448,7 @@ public class Main extends JavaPlugin {
 	private void clearNpc() {
 		for (Map.Entry<String, EntityPlayer> entry : npcs.entrySet()) {
 			EntityPlayer player = entry.getValue();
+			player.getWorld().removeEntity(player);
 			hideNpc(player);
 		}
 		
