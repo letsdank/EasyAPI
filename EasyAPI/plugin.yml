@@ -1,37 +1,8 @@
 name: EasyAPI
-main: com.letsdank.easyapi.main.Main
+main: com.letsdank.easyapi.Main
 description: An Easy-to-Make API for developers
 author: LetsDank
-version: 0.6
+version: 0.01
 load: STARTUP
 permissions:
-   eapi.command:
-      default: op
-   eapi.inv:
-      default: op
-   eapi.npc.edit:
-      default: op
 commands:
-   easyapi:
-      description: Shows information to configure EasyAPI plugin
-      aliases: eapi
-      permission: eapi.command
-   inv:
-      description: Shows inventory from folder inv created by EasyAPI plugin
-      permission: eapi.inv
-      usage: 'Usage: /<command> [name] or /<command> list'
-   craft:
-      description: Shows Custom Craft recipes listed from folder customcraft.
-      usage: 'Usage: /<command> [name] or /<command> list'
-   spawnnpc:
-      description: Spawns NPC to player location
-      usage: 'Usage: /<command> [npcID] [playerName]'
-   destroynpc:
-      description: Destroys NPC by unique ID
-      usage: 'Usage: /<command> [npcID]'
-   clearnpc:
-      description: Clears all NPC
-      usage: 'Usage: /<command>'
-   inject:
-      description: Inspecting all packets sending from player
-      usage: 'Usage: /<command> or /<command> [playerName]'
